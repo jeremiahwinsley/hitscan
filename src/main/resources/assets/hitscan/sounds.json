@@ -1,0 +1,16 @@
+{
+  "pp7_gunshot": {
+    "category": "player",
+    "subtitle": "subtitle.hitscan.gunshot",
+    "sounds": [
+      "hitscan:pp7_gunshot"
+    ]
+  },
+  "pp7_reload": {
+    "category": "player",
+    "subtitle": "subtitle.hitscan.reload",
+    "sounds": [
+      "hitscan:pp7_reload"
+    ]
+  }
+}

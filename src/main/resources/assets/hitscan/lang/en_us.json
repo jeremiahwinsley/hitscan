@@ -1,0 +1,16 @@
+{
+  "itemGroup.hitscan": "Hitscan Weapons",
+
+  "item.hitscan.silver_pp7": "Silver PP7",
+  "tooltip.hitscan.silver_pp7": "The name's Steve, Minecraft Steve.",
+  "tooltip.hitscan.pp7_damage": "Damage: %d",
+  "tooltip.hitscan.pp7_range": "Range: %dm",
+  "tooltip.hitscan.pp7_ammo": "Ammo: %d/%d",
+
+  "subtitle.hitscan.laser_beam": "Laser beam",
+  "subtitle.hitscan.gunshot": "Gunshot",
+  "subtitle.hitscan.reload": "Reloading",
+
+  "key.hitscan.category": "Hitscan Weapons",
+  "key.hitscan.reload": "Reload Weapon"
+}

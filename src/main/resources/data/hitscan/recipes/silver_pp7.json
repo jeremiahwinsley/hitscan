@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "xxx",
+    "msm",
+    "xxx"
+  ],
+  "key": {
+    "x": {
+      "item": "minecraft:netherite_ingot"
+    },
+    "s": {
+      "item": "minecraft:nether_star"
+    },
+    "m": {
+      "type": "forge:nbt",
+      "item": "minecraft:enchanted_book",
+      "nbt": "{StoredEnchantments:[ { id:\"minecraft:mending\", lvl: 1s } ]}"
+    }
+  },
+  "result": {
+    "item": "hitscan:silver_pp7",
+    "count": 1
+  }
+}
