@@ -12,6 +12,7 @@ public class Hitscan {
 
     public static final Logger LOGGER = LogManager.getLogger();
 
+    @SuppressWarnings("java:S1118")
     public Hitscan() {
         LOGGER.info("Registering mod: {}", MODID);
         ModRegistry.register();

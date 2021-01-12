@@ -58,6 +58,7 @@ public class ItemHitscanWeapon extends Item {
     }
 
     @Nonnull
+    @Override
     public ActionResult<ItemStack> onItemRightClick(World worldIn, PlayerEntity playerIn, Hand handIn) {
         ItemStack weapon = playerIn.getHeldItem(handIn);
 

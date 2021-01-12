@@ -6,6 +6,10 @@ import net.minecraftforge.fml.network.simple.SimpleChannel;
 import net.permutated.hitscan.Hitscan;
 
 public class NetworkDispatcher {
+    private NetworkDispatcher() {
+        // nothing to do
+    }
+
     private static final String PROTOCOL_VERSION = "1";
 
     public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(new ResourceLocation(Hitscan.MODID, "main"),
