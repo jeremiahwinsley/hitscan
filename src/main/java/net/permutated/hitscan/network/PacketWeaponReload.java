@@ -19,6 +19,7 @@ public class PacketWeaponReload {
         // nothing to do
     }
 
+    @SuppressWarnings("java:S1172")
     public static void handle(PacketWeaponReload event, Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             Optional<PlayerEntity> player = Optional.ofNullable(ctx.get().getSender());

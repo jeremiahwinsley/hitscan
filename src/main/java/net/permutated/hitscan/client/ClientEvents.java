@@ -26,7 +26,7 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.Optional;
 import java.util.Random;
-import java.util.function.Function;
+import java.util.function.DoubleUnaryOperator;
 import java.util.stream.IntStream;
 
 @Mod.EventBusSubscriber(Dist.CLIENT)
@@ -56,7 +56,7 @@ public class ClientEvents {
             Boolean validItem = playerEntity.map(ItemHitscanWeapon::getWeapon)
                 .map(ItemStack::getItem).map(item -> item instanceof ItemHitscanWeapon).orElse(false);
 
-            if (playerEntity.isPresent() && validItem) {
+            if (playerEntity.isPresent() && validItem.equals(true)) {
                 NetworkDispatcher.INSTANCE.sendToServer(new PacketWeaponReload());
                 playerEntity.get().playSound(ModRegistry.PP7_RELOAD.get(), 1.0F, 1.0F);
             }
@@ -74,16 +74,14 @@ public class ClientEvents {
             .map(item -> item instanceof ItemHitscanWeapon)
             .orElse(false);
 
-        if (playerEntity.isPresent() && target.isPresent() && world.get().isRemote && validItem) {
+        if (world.isPresent() && target.isPresent() && world.get().isRemote && validItem.equals(true)) {
             Random random = world.get().getRandom();
-            Function<Double, Double> randomize = (d) -> {
-                return d + random.nextDouble() / 2.0D * (random.nextBoolean() ? 1.0D : -1.0D);
-            };
+            DoubleUnaryOperator randomize = d -> d + random.nextDouble() / 2.0D * (random.nextBoolean() ? 1.0D : -1.0D);
 
             IntStream.range(0, 8).forEach(i -> {
-                double posX = randomize.apply(target.get().getPosX() + 0.25D);
-                double posY = randomize.apply(target.get().getPosY() + 0.8D);
-                double posZ = randomize.apply(target.get().getPosZ() + 0.25D);
+                double posX = randomize.applyAsDouble(target.get().getPosX() + 0.25D);
+                double posY = randomize.applyAsDouble(target.get().getPosY() + 0.8D);
+                double posZ = randomize.applyAsDouble(target.get().getPosZ() + 0.25D);
                 world.get().addParticle(ParticleTypes.CRIT, posX, posY, posZ, 0.0D, 0.005D, 0.0D);
             });
         }

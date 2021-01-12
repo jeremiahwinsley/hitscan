@@ -11,10 +11,15 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.permutated.hitscan.item.ItemHitscanWeapon;
 
+import javax.annotation.Nonnull;
 import java.util.function.Supplier;
 
 
 public class ModRegistry {
+    private ModRegistry() {
+        // nothing to do
+    }
+
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, Hitscan.MODID);
     public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, Hitscan.MODID);
 
@@ -46,6 +51,7 @@ public class ModRegistry {
             this.iconSupplier = iconSupplier;
         }
 
+        @Nonnull
         @Override
         public ItemStack createIcon()
         {

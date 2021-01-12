@@ -15,6 +15,9 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 public class RayTrace {
+    private RayTrace() {
+        // nothing to do
+    }
 
     @CheckForNull
     public static EntityRayTraceResult getEntityLookingAt(PlayerEntity player, double range)
