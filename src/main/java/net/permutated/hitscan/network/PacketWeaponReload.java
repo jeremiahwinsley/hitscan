@@ -27,7 +27,8 @@ public class PacketWeaponReload {
 
             if (player.isPresent() && !world.get().isRemote) {
                 ItemStack heldItem = ItemHitscanWeapon.getWeapon(player.get());
-                if (heldItem.getItem() instanceof ItemHitscanWeapon) {
+                boolean hasCooldown = player.get().getCooldownTracker().hasCooldown(heldItem.getItem());
+                if (heldItem.getItem() instanceof ItemHitscanWeapon && !hasCooldown) {
                     ItemHitscanWeapon.doReload(world.get(), player.get(), heldItem);
                 }
             }

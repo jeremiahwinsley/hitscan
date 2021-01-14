@@ -6,13 +6,14 @@ import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.client.util.InputMappings;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RenderPlayerEvent;
 import net.minecraftforge.client.settings.KeyConflictContext;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
@@ -52,15 +53,18 @@ public class ClientEvents {
 
 
     @SubscribeEvent
-    public static void handleReloadEvent(InputEvent.KeyInputEvent event) {
-        if (RELOAD_KEY.isPressed()) {
+    public static void handleReloadEvent(TickEvent.ClientTickEvent event) {
+        if (RELOAD_KEY.isPressed() && event.phase == TickEvent.Phase.START) {
             Optional<PlayerEntity> playerEntity = Optional.ofNullable(Minecraft.getInstance().player);
-            Boolean validItem = playerEntity.map(ItemHitscanWeapon::getWeapon)
-                .map(ItemStack::getItem).map(item -> item instanceof ItemHitscanWeapon).orElse(false);
+            Optional<Item> item = playerEntity.map(ItemHitscanWeapon::getWeapon).map(ItemStack::getItem);
+            boolean isWeapon = item.map(i -> i instanceof ItemHitscanWeapon).orElse(false);
 
-            if (playerEntity.isPresent() && validItem.equals(true)) {
-                NetworkDispatcher.INSTANCE.sendToServer(new PacketWeaponReload());
-                playerEntity.get().playSound(ModRegistry.PP7_RELOAD.get(), 1.0F, 1.0F);
+            if (playerEntity.isPresent() && item.isPresent() && isWeapon) {
+                boolean hasCooldown = playerEntity.get().getCooldownTracker().hasCooldown(item.get());
+                if (!hasCooldown) {
+                    NetworkDispatcher.INSTANCE.sendToServer(new PacketWeaponReload());
+                    playerEntity.get().playSound(ModRegistry.PP7_RELOAD.get(), 1.0F, 1.0F);
+                }
             }
         }
     }
