@@ -16,7 +16,6 @@ import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.permutated.hitscan.ModRegistry;
 import net.permutated.hitscan.item.ItemHitscanWeapon;
 import net.permutated.hitscan.network.NetworkDispatcher;
@@ -32,10 +31,13 @@ import java.util.stream.IntStream;
 @Mod.EventBusSubscriber(Dist.CLIENT)
 public class ClientEvents {
     public static final KeyBinding RELOAD_KEY = new KeyBinding("key.hitscan.reload",
-        KeyConflictContext.UNIVERSAL, InputMappings.Type.KEYSYM, GLFW.GLFW_KEY_R, "key.hitscan.category");
+        KeyConflictContext.IN_GAME, InputMappings.Type.KEYSYM, GLFW.GLFW_KEY_R, "key.hitscan.category");
 
-    @SubscribeEvent
-    public void onClientSetupEvent(final FMLClientSetupEvent event) {
+    private ClientEvents() {
+        // nothing to do
+    }
+
+    public static void register() {
         ClientRegistry.registerKeyBinding(RELOAD_KEY);
     }
 
