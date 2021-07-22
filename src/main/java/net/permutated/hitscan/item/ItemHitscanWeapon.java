@@ -1,20 +1,26 @@
 package net.permutated.hitscan.item;
 
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.*;
-import net.minecraft.util.math.EntityRayTraceResult;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.*;
-import net.minecraft.world.World;
+import net.minecraft.ChatFormatting;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.network.PacketDistributor;
+import net.minecraftforge.fmllegacy.network.PacketDistributor;
 import net.permutated.hitscan.ModRegistry;
 import net.permutated.hitscan.network.NetworkDispatcher;
 import net.permutated.hitscan.network.PacketWeaponFired;
@@ -34,7 +40,7 @@ public class ItemHitscanWeapon extends Item {
     private final int maxAmmo;
 
     public ItemHitscanWeapon() {
-        super(new Properties().maxStackSize(1).group(ModRegistry.ITEM_GROUP).setNoRepair());
+        super(new Properties().stacksTo(1).tab(ModRegistry.CREATIVE_MODE_TAB).setNoRepair());
 
         weaponRange = 50;
         weaponDamage = 16;
@@ -47,86 +53,85 @@ public class ItemHitscanWeapon extends Item {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void addInformation(ItemStack stack, @Nullable World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
-        super.addInformation(stack, worldIn, tooltip, flagIn);
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flagIn) {
+        super.appendHoverText(stack, level, tooltip, flagIn);
 
-        tooltip.add(new TranslationTextComponent("tooltip.hitscan.silver_pp7").mergeStyle(TextFormatting.GOLD));
-        tooltip.add(new StringTextComponent(""));
-        tooltip.add(new TranslationTextComponent("tooltip.hitscan.pp7_damage", this.weaponDamage).mergeStyle(TextFormatting.DARK_GREEN));
-        tooltip.add(new TranslationTextComponent("tooltip.hitscan.pp7_range", this.weaponRange).mergeStyle(TextFormatting.DARK_GREEN));
-        tooltip.add(new TranslationTextComponent("tooltip.hitscan.pp7_ammo", getAmmoCount(stack), getMaxAmmo()).mergeStyle(TextFormatting.DARK_GREEN));
+        tooltip.add(new TranslatableComponent("tooltip.hitscan.silver_pp7").withStyle(ChatFormatting.GOLD));
+        tooltip.add(new TextComponent(""));
+        tooltip.add(new TranslatableComponent("tooltip.hitscan.pp7_damage", this.weaponDamage).withStyle(ChatFormatting.DARK_GREEN));
+        tooltip.add(new TranslatableComponent("tooltip.hitscan.pp7_range", this.weaponRange).withStyle(ChatFormatting.DARK_GREEN));
+        tooltip.add(new TranslatableComponent("tooltip.hitscan.pp7_ammo", getAmmoCount(stack), getMaxAmmo()).withStyle(ChatFormatting.DARK_GREEN));
     }
 
     @Nonnull
     @Override
-    public ActionResult<ItemStack> onItemRightClick(World worldIn, PlayerEntity playerIn, Hand handIn) {
-        ItemStack weapon = playerIn.getHeldItem(handIn);
+    public InteractionResultHolder<ItemStack> use(Level level, Player playerIn, InteractionHand handIn) {
+        ItemStack weapon = playerIn.getItemInHand(handIn);
 
-        if (doReloadIfEmpty(worldIn, playerIn, weapon)) {
-            return ActionResult.resultConsume(weapon);
+        if (doReloadIfEmpty(level, playerIn, weapon)) {
+            return InteractionResultHolder.consume(weapon);
         }
 
         // TODO upgrades
         // TODO dual wield
-        EntityRayTraceResult result = RayTrace.getEntityLookingAt(playerIn, this.weaponRange);
+        EntityHitResult result = RayTrace.getEntityLookingAt(playerIn, this.weaponRange);
         if (result != null) {
 
-            if (!worldIn.isRemote) {
+            if (!level.isClientSide) {
                 // do damage
                 Entity target = result.getEntity();
-                if (target instanceof LivingEntity) {
-                    LivingEntity livingEntity = (LivingEntity)target;
+                if (target instanceof LivingEntity livingEntity) {
 
-                    DamageSource damageSource = DamageSource.causePlayerDamage(playerIn);
-                    playerIn.setLastAttackedEntity(livingEntity);
+                    DamageSource damageSource = DamageSource.playerAttack(playerIn);
+                    playerIn.setLastHurtMob(livingEntity);
 
-                    double ratioX = MathHelper.sin(playerIn.rotationYaw * ((float)Math.PI / 180F));
-                    double ratioZ = -MathHelper.cos(playerIn.rotationYaw * ((float)Math.PI / 180F));
+                    double ratioX = Mth.sin(playerIn.getYRot() * ((float) Math.PI / 180F));
+                    double ratioZ = -Mth.cos(playerIn.getYRot() * ((float) Math.PI / 180F));
 
-                    livingEntity.applyKnockback(0.5F, ratioX, ratioZ);
-                    livingEntity.attackEntityFrom(damageSource, weaponDamage);
+                    livingEntity.knockback(0.5F, ratioX, ratioZ);
+                    livingEntity.hurt(damageSource, weaponDamage);
                     useOneAmmo(weapon);
 
                     NetworkDispatcher.INSTANCE.send(PacketDistributor.TRACKING_ENTITY.with(() -> livingEntity),
                         new PacketWeaponFired(playerIn, livingEntity));
 
-                    worldIn.playSound(null, playerIn.getPosition(),
-                        ModRegistry.PP7_GUNSHOT.get(), SoundCategory.PLAYERS, 1.0F, 1.0F);
+                    level.playSound(null, playerIn.blockPosition(),
+                        ModRegistry.PP7_GUNSHOT.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
 
                     if (getAmmoCount(weapon) > 0) {
-                        playerIn.getCooldownTracker().setCooldown(this, 20);
+                        playerIn.getCooldowns().addCooldown(this, 20);
                     }
                 }
             }
 
-            return ActionResult.resultConsume(weapon);
+            return InteractionResultHolder.consume(weapon);
         } else {
-            return ActionResult.resultPass(weapon);
+            return InteractionResultHolder.pass(weapon);
         }
     }
 
-    public static boolean doReloadIfEmpty(World worldIn, PlayerEntity playerIn, ItemStack weapon) {
+    public static boolean doReloadIfEmpty(Level level, Player playerIn, ItemStack weapon) {
         if (getAmmoCount(weapon) == 0) {
-            doReload(worldIn, playerIn, weapon);
+            doReload(level, playerIn, weapon);
             return true;
         } else {
             return false;
         }
     }
 
-    public static void doReload(World worldIn, PlayerEntity playerIn, ItemStack weapon) {
-        if (!worldIn.isRemote) {
+    public static void doReload(Level level, Player playerIn, ItemStack weapon) {
+        if (!level.isClientSide) {
             reloadAmmo(weapon);
-            playerIn.getCooldownTracker().setCooldown(weapon.getItem(), 60);
+            playerIn.getCooldowns().addCooldown(weapon.getItem(), 60);
         } else {
             playerIn.playSound(ModRegistry.PP7_RELOAD.get(), 1.0F, 1.0F);
         }
     }
 
-    public static ItemStack getWeapon(PlayerEntity player) {
-        ItemStack heldItem = player.getHeldItemMainhand();
+    public static ItemStack getWeapon(Player player) {
+        ItemStack heldItem = player.getMainHandItem();
         if (!(heldItem.getItem() instanceof ItemHitscanWeapon)) {
-            heldItem = player.getHeldItemOffhand();
+            heldItem = player.getOffhandItem();
             if (!(heldItem.getItem() instanceof ItemHitscanWeapon)) {
                 return ItemStack.EMPTY;
             }
@@ -144,7 +149,7 @@ public class ItemHitscanWeapon extends Item {
     }
 
     public static int getAmmoCount(ItemStack itemStack) {
-        CompoundNBT nbt = itemStack.getOrCreateTag();
+        CompoundTag nbt = itemStack.getOrCreateTag();
 
         if (!nbt.contains("ammo")) {
             reloadAmmo(itemStack);

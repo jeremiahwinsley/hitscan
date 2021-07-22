@@ -1,10 +1,10 @@
 package net.permutated.hitscan.network;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.fmllegacy.network.NetworkEvent;
 import net.permutated.hitscan.item.ItemHitscanWeapon;
 
 import java.util.Optional;
@@ -15,19 +15,19 @@ public class PacketWeaponReload {
         // nothing to do
     }
 
-    public PacketWeaponReload(PacketBuffer buffer) {
+    public PacketWeaponReload(FriendlyByteBuf buffer) {
         // nothing to do
     }
 
     @SuppressWarnings("java:S1172")
     public static void handle(PacketWeaponReload event, Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
-            Optional<PlayerEntity> player = Optional.ofNullable(ctx.get().getSender());
-            Optional<World> world = player.map(PlayerEntity::getEntityWorld);
+            Optional<Player> player = Optional.ofNullable(ctx.get().getSender());
+            Optional<Level> world = player.map(Player::getCommandSenderWorld);
 
-            if (player.isPresent() && !world.get().isRemote) {
+            if (player.isPresent() && !world.get().isClientSide) {
                 ItemStack heldItem = ItemHitscanWeapon.getWeapon(player.get());
-                boolean hasCooldown = player.get().getCooldownTracker().hasCooldown(heldItem.getItem());
+                boolean hasCooldown = player.get().getCooldowns().isOnCooldown(heldItem.getItem());
                 if (heldItem.getItem() instanceof ItemHitscanWeapon && !hasCooldown) {
                     ItemHitscanWeapon.doReload(world.get(), player.get(), heldItem);
                 }
@@ -36,7 +36,7 @@ public class PacketWeaponReload {
         ctx.get().setPacketHandled(true);
     }
 
-    public void toBytes(PacketBuffer buffer) {
+    public void toBytes(FriendlyByteBuf buffer) {
         // nothing to do
     }
 }

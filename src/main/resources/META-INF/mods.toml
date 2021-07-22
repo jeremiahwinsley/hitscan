@@ -1,5 +1,5 @@
 modLoader="javafml" #mandatory
-loaderVersion="[35,)" #mandatory
+loaderVersion="[37,)" #mandatory
 license="All rights reserved"
 issueTrackerURL="https://github.com/jeremiahwinsley/hitscan" #optional
 
@@ -14,13 +14,13 @@ Adds hitscan weapons (currently just the Silver PP7).
 [[dependencies.hitscan]]
 modId="forge"
 mandatory=true
-versionRange="[35,]"
+versionRange="[37,]"
 ordering="NONE"
 side="BOTH"
 
 [[dependencies.hitscan]]
 modId="minecraft"
 mandatory=true
-versionRange="[1.16.4,1.17)"
+versionRange="[1.17.1,1.18)"
 ordering="NONE"
 side="BOTH"

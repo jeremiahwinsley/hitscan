@@ -1,14 +1,14 @@
 package net.permutated.hitscan.util;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.EntityRayTraceResult;
-import net.minecraft.util.math.RayTraceContext;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.Level;
 
 import javax.annotation.CheckForNull;
 import java.util.Optional;
@@ -20,36 +20,36 @@ public class RayTrace {
     }
 
     @CheckForNull
-    public static EntityRayTraceResult getEntityLookingAt(PlayerEntity player, double range)
+    public static EntityHitResult getEntityLookingAt(Player player, double range)
     {
         return getEntityLookingAt(player, range, 1.0F);
     }
 
     @CheckForNull
-    public static EntityRayTraceResult getEntityLookingAt(PlayerEntity player, double range, float ticks) {
-        World world = player.world;
+    public static EntityHitResult getEntityLookingAt(Player player, double range, float ticks) {
+        Level world = player.level;
 
-        Vector3d look = player.getLookVec();
-        Vector3d start = player.getEyePosition(ticks);
+        Vec3 look = player.getLookAngle();
+        Vec3 start = player.getEyePosition(ticks);
 
-        Vector3d end = new Vector3d(player.getPosX() + look.x * range, player.getPosYEye() + look.y * range, player.getPosZ() + look.z * range);
-        RayTraceContext context = new RayTraceContext(start, end, RayTraceContext.BlockMode.COLLIDER, RayTraceContext.FluidMode.NONE, player);
+        Vec3 end = new Vec3(player.getX() + look.x * range, player.getEyeY() + look.y * range, player.getZ() + look.z * range);
+        ClipContext context = new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player);
 
-        RayTraceResult rayTraceResult = world.rayTraceBlocks(context);
-        double traceDistance = rayTraceResult.getHitVec().squareDistanceTo(start);
+        HitResult rayTraceResult = world.clip(context);
+        double traceDistance = rayTraceResult.getLocation().distanceToSqr(start);
 
-        AxisAlignedBB playerBox = player.getBoundingBox().expand(look.scale(traceDistance)).expand(1.0D, 1.0D, 1.0D);
+        AABB playerBox = player.getBoundingBox().expandTowards(look.scale(traceDistance)).expandTowards(1.0D, 1.0D, 1.0D);
 
-        Predicate<Entity> filter = entity -> !entity.isSpectator() && entity.canBeCollidedWith() && entity instanceof LivingEntity;
-        for (Entity possible : world.getEntitiesInAABBexcluding(player, playerBox, filter)) {
-            AxisAlignedBB entityBox = possible.getBoundingBox().grow(0.3D);
-            Optional<Vector3d> optional = entityBox.rayTrace(start, end);
+        Predicate<Entity> filter = entity -> !entity.isSpectator() && entity.isPickable() && entity instanceof LivingEntity;
+        for (Entity possible : world.getEntities(player, playerBox, filter)) {
+            AABB entityBox = possible.getBoundingBox().inflate(0.3D);
+            Optional<Vec3> optional = entityBox.clip(start, end);
             if (optional.isPresent()) {
-                Vector3d position = optional.get();
-                double distance = start.squareDistanceTo(position);
+                Vec3 position = optional.get();
+                double distance = start.distanceToSqr(position);
 
                 if (distance < traceDistance) {
-                    return new EntityRayTraceResult(possible, position);
+                    return new EntityHitResult(possible, position);
                 }
             }
         }
@@ -57,19 +57,19 @@ public class RayTrace {
     }
 
     @CheckForNull
-    public static EntityRayTraceResult traceToEntity(PlayerEntity player, Entity target)
+    public static EntityHitResult traceToEntity(Player player, Entity target)
     {
         return traceToEntity(player, target, 1.0F);
     }
 
     @CheckForNull
-    public static EntityRayTraceResult traceToEntity(PlayerEntity player, Entity target, float ticks) {
-        Vector3d start = player.getEyePosition(ticks);
-        Vector3d end = target.getPositionVec();
+    public static EntityHitResult traceToEntity(Player player, Entity target, float ticks) {
+        Vec3 start = player.getEyePosition(ticks);
+        Vec3 end = target.position();
 
-        AxisAlignedBB targetBox = target.getBoundingBox().grow(0.3D);
-        Optional<Vector3d> optional = targetBox.rayTrace(start, end);
+        AABB targetBox = target.getBoundingBox().inflate(0.3D);
+        Optional<Vec3> optional = targetBox.clip(start, end);
 
-        return optional.map(vector3d -> new EntityRayTraceResult(target, vector3d)).orElse(null);
+        return optional.map(vector3d -> new EntityHitResult(target, vector3d)).orElse(null);
     }
 }

@@ -1,12 +1,12 @@
 package net.permutated.hitscan;
 
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundEvent;
-import net.minecraftforge.fml.RegistryObject;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fmllegacy.RegistryObject;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.permutated.hitscan.item.ItemHitscanWeapon;
@@ -23,7 +23,7 @@ public class ModRegistry {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, Hitscan.MODID);
     public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, Hitscan.MODID);
 
-    public static final ItemGroup ITEM_GROUP = new ModItemGroup(Hitscan.MODID,
+    public static final CreativeModeTab CREATIVE_MODE_TAB = new ModCreativeModeTab(Hitscan.MODID,
         () -> new ItemStack(ModRegistry.SILVER_PP7.get()));
 
     // Items
@@ -41,11 +41,11 @@ public class ModRegistry {
         SOUNDS.register(FMLJavaModLoadingContext.get().getModEventBus());
     }
 
-    public static final class ModItemGroup extends ItemGroup
+    public static final class ModCreativeModeTab extends CreativeModeTab
     {
         private final Supplier<ItemStack> iconSupplier;
 
-        public ModItemGroup(final String name, final Supplier<ItemStack> iconSupplier)
+        public ModCreativeModeTab(final String name, final Supplier<ItemStack> iconSupplier)
         {
             super(name);
             this.iconSupplier = iconSupplier;
@@ -53,7 +53,7 @@ public class ModRegistry {
 
         @Nonnull
         @Override
-        public ItemStack createIcon()
+        public ItemStack makeIcon()
         {
             return iconSupplier.get();
         }
