@@ -18,8 +18,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fmllegacy.network.PacketDistributor;
 import net.permutated.hitscan.ModRegistry;
 import net.permutated.hitscan.network.NetworkDispatcher;
@@ -52,7 +50,6 @@ public class ItemHitscanWeapon extends Item {
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flagIn) {
         super.appendHoverText(stack, level, tooltip, flagIn);
 
@@ -141,8 +138,8 @@ public class ItemHitscanWeapon extends Item {
 
     public static Optional<ItemHitscanWeapon> resolve(ItemStack itemStack) {
         Item item = itemStack.getItem();
-        if (item instanceof ItemHitscanWeapon) {
-            return Optional.of((ItemHitscanWeapon) item);
+        if (item instanceof ItemHitscanWeapon weapon) {
+            return Optional.of(weapon);
         } else {
             return Optional.empty();
         }
@@ -178,6 +175,7 @@ public class ItemHitscanWeapon extends Item {
 
     @Override
     public double getDurabilityForDisplay(ItemStack itemStack) {
-        return (getMaxAmmo() - getAmmoCount(itemStack)) / 7.0D;
+        double max = Math.max(getMaxAmmo(), 1);
+        return (max - getAmmoCount(itemStack)) / max;
     }
 }

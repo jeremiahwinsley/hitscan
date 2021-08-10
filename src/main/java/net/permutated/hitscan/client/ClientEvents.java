@@ -57,10 +57,9 @@ public class ClientEvents {
         if (RELOAD_KEY.consumeClick() && event.phase == TickEvent.Phase.START) {
             Optional<Player> playerEntity = Optional.ofNullable(Minecraft.getInstance().player);
             Optional<Item> item = playerEntity.map(ItemHitscanWeapon::getWeapon).map(ItemStack::getItem);
-            boolean isWeapon = item.map(i -> i instanceof ItemHitscanWeapon).orElse(false);
 
-            if (playerEntity.isPresent() && item.isPresent() && isWeapon) {
-                boolean hasCooldown = playerEntity.get().getCooldowns().isOnCooldown(item.get());
+            if (playerEntity.isPresent() && item.isPresent() && item.get() instanceof ItemHitscanWeapon weapon) {
+                boolean hasCooldown = playerEntity.get().getCooldowns().isOnCooldown(weapon);
                 if (!hasCooldown) {
                     NetworkDispatcher.INSTANCE.sendToServer(new PacketWeaponReload());
                     playerEntity.get().playSound(ModRegistry.PP7_RELOAD.get(), 1.0F, 1.0F);
@@ -71,24 +70,24 @@ public class ClientEvents {
 
     public static void handlePacketWeaponFired(PacketWeaponFired event) {
         Optional<Player> playerEntity = Optional.ofNullable(Minecraft.getInstance().player);
-        Optional<Level> world = playerEntity.map(Player::getCommandSenderWorld);
-        Optional<Entity> target = world.map(w -> w.getEntity(event.getTargetId()));
+        Optional<Level> level = playerEntity.map(Player::getCommandSenderWorld);
+        Optional<Entity> target = level.map(w -> w.getEntity(event.getTargetId()));
 
-        Boolean validItem = world.map(w -> w.getPlayerByUUID(event.getPlayerUUID()))
+        Boolean validItem = level.map(w -> w.getPlayerByUUID(event.getPlayerUUID()))
             .map(ItemHitscanWeapon::getWeapon)
             .map(ItemStack::getItem)
             .map(item -> item instanceof ItemHitscanWeapon)
             .orElse(false);
 
-        if (world.isPresent() && target.isPresent() && world.get().isClientSide && validItem.equals(true)) {
-            Random random = world.get().getRandom();
+        if (level.isPresent() && target.isPresent() && level.get().isClientSide && validItem.equals(true)) {
+            Random random = level.get().getRandom();
             DoubleUnaryOperator randomize = d -> d + random.nextDouble() / 2.0D * (random.nextBoolean() ? 1.0D : -1.0D);
 
             IntStream.range(0, 8).forEach(i -> {
                 double posX = randomize.applyAsDouble(target.get().getX() + 0.25D);
                 double posY = randomize.applyAsDouble(target.get().getY() + 0.8D);
                 double posZ = randomize.applyAsDouble(target.get().getZ() + 0.25D);
-                world.get().addParticle(ParticleTypes.CRIT, posX, posY, posZ, 0.0D, 0.005D, 0.0D);
+                level.get().addParticle(ParticleTypes.CRIT, posX, posY, posZ, 0.0D, 0.005D, 0.0D);
             });
         }
     }
