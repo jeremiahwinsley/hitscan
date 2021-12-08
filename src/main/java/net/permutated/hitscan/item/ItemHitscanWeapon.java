@@ -18,7 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
-import net.minecraftforge.fmllegacy.network.PacketDistributor;
+import net.minecraftforge.network.PacketDistributor;
 import net.permutated.hitscan.ModRegistry;
 import net.permutated.hitscan.network.NetworkDispatcher;
 import net.permutated.hitscan.network.PacketWeaponFired;
@@ -169,13 +169,20 @@ public class ItemHitscanWeapon extends Item {
     }
 
     @Override
-    public boolean showDurabilityBar(ItemStack itemStack) {
+    public boolean isBarVisible(ItemStack itemStack) {
         return getAmmoCount(itemStack) < getMaxAmmo();
     }
 
     @Override
-    public double getDurabilityForDisplay(ItemStack itemStack) {
-        double max = Math.max(getMaxAmmo(), 1);
-        return (max - getAmmoCount(itemStack)) / max;
+    public int getBarColor(ItemStack itemStack) {
+        float max = Math.max(getMaxAmmo(), 1);
+        float f = Math.max(0.0F, getAmmoCount(itemStack) / max);
+        return Mth.hsvToRgb(f / 3.0F, 1.0F, 1.0F);
+    }
+
+    @Override
+    public int getBarWidth(ItemStack itemStack) {
+        float max = Math.max(getMaxAmmo(), 1);
+        return Math.round(13.0F - (max - getAmmoCount(itemStack)) * 13.0F / max);
     }
 }

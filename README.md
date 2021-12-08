@@ -1,4 +1,4 @@
 # hitscan
-Hitscan Weapons for Forge 1.17.1
+Hitscan Weapons for Forge 1.18
 
 Adds hitscan weapons (currently just the Silver PP7).

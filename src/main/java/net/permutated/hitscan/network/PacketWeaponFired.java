@@ -3,7 +3,7 @@ package net.permutated.hitscan.network;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.fmllegacy.network.NetworkEvent;
+import net.minecraftforge.network.NetworkEvent;
 import net.permutated.hitscan.client.ClientEvents;
 
 import java.util.UUID;
